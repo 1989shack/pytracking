@@ -41,7 +41,7 @@ class VOT(object):
         elif channels == 'ir':
             channels = ['ir']
         else:
-            raise Exception('Illegal configuration {}.'.format(channels))
+            raise Exception(f'Illegal configuration {channels}.')
 
         self._trax = trax.Server([region_format], [trax.Image.PATH], channels)
 
@@ -74,13 +74,13 @@ class VOT(object):
         Arguments:
             region: region for the frame
         """
-        assert(isinstance(region, Rectangle) or isinstance(region, Polygon))
+        assert isinstance(region, (Rectangle, Polygon))
         if isinstance(region, Polygon):
             tregion = trax.Polygon.create([(x.x, x.y) for x in region.points])
         else:
             tregion = trax.Rectangle.create(region.x, region.y, region.width, region.height)
         properties = {}
-        if not confidence is None:
+        if confidence is not None:
             properties['confidence'] = confidence
         self._trax.status(tregion, properties)
 
@@ -98,13 +98,12 @@ class VOT(object):
 
         request = self._trax.wait()
 
-        if request.type == 'frame':
-            image = [str(x) for k, x in request.image.items()]
-            if len(image) == 1:
-                image = image[0]
-            return tuple(image)
-        else:
+        if request.type != 'frame':
             return None
+        image = [str(x) for k, x in request.image.items()]
+        if len(image) == 1:
+            image = image[0]
+        return tuple(image)
 
 
     def quit(self):

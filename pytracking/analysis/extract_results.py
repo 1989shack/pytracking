@@ -22,8 +22,7 @@ def calc_err_center(pred_bb, anno_bb, normalized=False):
         pred_center = pred_center / anno_bb[:, 2:]
         anno_center = anno_center / anno_bb[:, 2:]
 
-    err_center = ((pred_center - anno_center)**2).sum(1).sqrt()
-    return err_center
+    return ((pred_center - anno_center)**2).sum(1).sqrt()
 
 
 def calc_iou_overlap(pred_bb, anno_bb):
@@ -45,11 +44,8 @@ def calc_seq_err_robust(pred_bb, anno_bb, dataset, target_visible=None):
     if torch.isnan(pred_bb).any() or (pred_bb[:, 2:] < 0.0).any():
         raise Exception('Error: Invalid results')
 
-    if torch.isnan(anno_bb).any():
-        if dataset == 'uav':
-            pass
-        else:
-            raise Exception('Warning: NaNs in annotation')
+    if torch.isnan(anno_bb).any() and dataset != 'uav':
+        raise Exception('Warning: NaNs in annotation')
 
     if (pred_bb[:, 2:] == 0.0).any():
         for i in range(1, pred_bb.shape[0]):
@@ -57,19 +53,14 @@ def calc_seq_err_robust(pred_bb, anno_bb, dataset, target_visible=None):
                 pred_bb[i, :] = pred_bb[i-1, :]
 
     if pred_bb.shape[0] != anno_bb.shape[0]:
-        if dataset == 'lasot':
-            if pred_bb.shape[0] > anno_bb.shape[0]:
-                # For monkey-17, there is a mismatch for some trackers.
-                pred_bb = pred_bb[:anno_bb.shape[0], :]
-            else:
-                raise Exception('Mis-match in tracker prediction and GT lengths')
+        if pred_bb.shape[0] > anno_bb.shape[0]:
+            # For monkey-17, there is a mismatch for some trackers.
+            pred_bb = pred_bb[:anno_bb.shape[0], :]
         else:
-            # print('Warning: Mis-match in tracker prediction and GT lengths')
-            if pred_bb.shape[0] > anno_bb.shape[0]:
-                pred_bb = pred_bb[:anno_bb.shape[0], :]
-            else:
-                pad = torch.zeros((anno_bb.shape[0] - pred_bb.shape[0], 4)).type_as(pred_bb)
-                pred_bb = torch.cat((pred_bb, pad), dim=0)
+            if dataset == 'lasot':
+                raise Exception('Mis-match in tracker prediction and GT lengths')
+            pad = torch.zeros((anno_bb.shape[0] - pred_bb.shape[0], 4)).type_as(pred_bb)
+            pred_bb = torch.cat((pred_bb, pad), dim=0)
 
     pred_bb[0, :] = anno_bb[0, :]
 
@@ -84,10 +75,7 @@ def calc_seq_err_robust(pred_bb, anno_bb, dataset, target_visible=None):
     err_overlap = calc_iou_overlap(pred_bb, anno_bb)
 
     # handle invalid anno cases
-    if dataset in ['uav']:
-        err_center[~valid] = -1.0
-    else:
-        err_center[~valid] = float("Inf")
+    err_center[~valid] = -1.0 if dataset in ['uav'] else float("Inf")
     err_center_normalized[~valid] = -1.0
     err_overlap[~valid] = -1.0
 

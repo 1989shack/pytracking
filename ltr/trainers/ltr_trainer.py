@@ -130,7 +130,7 @@ class LTRTrainer(BaseTrainer):
             if loader.training:
                 lr_list = self.lr_scheduler.get_lr()
                 for i, lr in enumerate(lr_list):
-                    var_name = 'LearningRate/group{}'.format(i)
+                    var_name = f'LearningRate/group{i}'
                     if var_name not in self.stats[loader.name].keys():
                         self.stats[loader.name][var_name] = StatValue()
                     self.stats[loader.name][var_name].update(lr)

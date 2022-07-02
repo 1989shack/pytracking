@@ -59,7 +59,7 @@ class BaseTrainer:
 
         epoch = -1
         num_tries = 10
-        for i in range(num_tries):
+        for _ in range(num_tries):
             try:
                 if load_latest:
                     self.load_checkpoint()
@@ -75,7 +75,7 @@ class BaseTrainer:
                     if self._checkpoint_dir:
                         self.save_checkpoint()
             except:
-                print('Training crashed at epoch {}'.format(epoch))
+                print(f'Training crashed at epoch {epoch}')
                 if fail_safe:
                     self.epoch -= 1
                     load_latest = True
@@ -112,7 +112,7 @@ class BaseTrainer:
         }
 
 
-        directory = '{}/{}'.format(self._checkpoint_dir, self.settings.project_path)
+        directory = f'{self._checkpoint_dir}/{self.settings.project_path}'
         if not os.path.exists(directory):
             os.makedirs(directory)
 
@@ -144,10 +144,11 @@ class BaseTrainer:
         net_type = type(net).__name__
 
         if checkpoint is None:
-            # Load most recent checkpoint
-            checkpoint_list = sorted(glob.glob('{}/{}/{}_ep*.pth.tar'.format(self._checkpoint_dir,
-                                                                             self.settings.project_path, net_type)))
-            if checkpoint_list:
+            if checkpoint_list := sorted(
+                glob.glob(
+                    f'{self._checkpoint_dir}/{self.settings.project_path}/{net_type}_ep*.pth.tar'
+                )
+            ):
                 checkpoint_path = checkpoint_list[-1]
             else:
                 print('No matching checkpoint file found')
@@ -159,8 +160,9 @@ class BaseTrainer:
         elif isinstance(checkpoint, str):
             # checkpoint is the path
             if os.path.isdir(checkpoint):
-                checkpoint_list = sorted(glob.glob('{}/*_ep*.pth.tar'.format(checkpoint)))
-                if checkpoint_list:
+                if checkpoint_list := sorted(
+                    glob.glob(f'{checkpoint}/*_ep*.pth.tar')
+                ):
                     checkpoint_path = checkpoint_list[-1]
                 else:
                     raise Exception('No checkpoint found')
