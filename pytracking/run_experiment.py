@@ -18,10 +18,13 @@ def run_experiment(experiment_module: str, experiment_name: str, debug=0, thread
         debug: Debug level.
         threads: Number of threads.
     """
-    expr_module = importlib.import_module('pytracking.experiments.{}'.format(experiment_module))
+    expr_module = importlib.import_module(
+        f'pytracking.experiments.{experiment_module}'
+    )
+
     expr_func = getattr(expr_module, experiment_name)
     trackers, dataset = expr_func()
-    print('Running:  {}  {}'.format(experiment_module, experiment_name))
+    print(f'Running:  {experiment_module}  {experiment_name}')
     run_dataset(dataset, trackers, debug, threads)
 
 

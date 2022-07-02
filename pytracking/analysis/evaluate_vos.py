@@ -158,7 +158,7 @@ def evaluate_vos(trackers, dataset='yt2019_jjval', force=False):
         elif t.run_id is not None:
             disp_name = '{} {}_{:03d}'.format(t.name, t.parameter_name, t.run_id)
         else:
-            disp_name = '{} {}'.format(t.name, t.parameter_name)
+            disp_name = f'{t.name} {t.parameter_name}'
 
         display_names.append(disp_name)
         results_path = t.segmentation_dir
